@@ -1,0 +1,89 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <OutputType>Library</OutputType>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Platforms>AnyCPU</Platforms>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AssemblyName>SDRSharp.InmarsatAero</AssemblyName>
+    <RootNamespace>SDRSharp.InmarsatAero</RootNamespace>
+    <DefaultItemExcludes>$(DefaultItemExcludes);sdrsharp\**;lib\**;tools\**;docs\**;dist\**</DefaultItemExcludes>
+    <SDRSharpDir Condition="'$(SDRSharpDir)' == ''">$(MSBuildProjectDirectory)\sdrsharp\</SDRSharpDir>
+  </PropertyGroup>
+
+  <!-- Where the SDR# assemblies are compiled against: the plugin kit's lib\ when building inside the kit, else the
+       SDR# install in SDRSharpDir (dotnet build -c Release -p:SDRSharpDir=C:\path\to\sdrsharp\). They are never
+       copied or shipped: SDR# supplies its own at run time. -->
+  <PropertyGroup>
+    <SDRSharpRefDir Condition="'$(SDRSharpRefDir)' == '' And Exists('..\lib\ref\SDRSharp.Radio.dll')">..\lib\ref\</SDRSharpRefDir>
+    <SDRSharpRefDir Condition="'$(SDRSharpRefDir)' == ''">$(SDRSharpDir)</SDRSharpRefDir>
+    <SDRSharpPanViewDir Condition="'$(SDRSharpPanViewDir)' == '' And Exists('..\lib\SDRSharp.PanView.dll')">..\lib\</SDRSharpPanViewDir>
+    <SDRSharpPanViewDir Condition="'$(SDRSharpPanViewDir)' == ''">$(SDRSharpDir)</SDRSharpPanViewDir>
+  </PropertyGroup>
+
+  <!-- Compile-time only: SDR# supplies its own copies at run time, so nothing is copied (Private=false). -->
+  <ItemGroup>
+    <Reference Include="SDRSharp.Common">
+      <HintPath>$(SDRSharpRefDir)SDRSharp.Common.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SDRSharp.Radio">
+      <HintPath>$(SDRSharpRefDir)SDRSharp.Radio.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SDRSharp.PluginsCom">
+      <HintPath>$(SDRSharpRefDir)SDRSharp.PluginsCom.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SDRSharp.PanView">
+      <HintPath>$(SDRSharpPanViewDir)SDRSharp.PanView.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="ProcessorPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="ProcessorPanel.Designer.cs">
+      <DependentUpon>ProcessorPanel.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="THIRD-PARTY-NOTICES.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <!-- Deploys the build output to <SDRSharpDir>\Plugins\<AssemblyName>\ when that SDR# exists (test install); skipped otherwise. -->
+  <Target Name="DeployToSDRSharp" AfterTargets="Build" Condition="Exists('$(SDRSharpDir)SDRSharp.exe')">
+    <ItemGroup>
+      <_PluginFiles Include="$(OutDir)**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_PluginFiles)" DestinationFolder="$(SDRSharpDir)Plugins\$(AssemblyName)\%(RecursiveDir)" SkipUnchangedFiles="true" />
+  </Target>
+
+  <!-- Release build: dist\SDRSharp.InmarsatAero-v<version>.zip holding one folder, SDRSharp.InmarsatAero\, with the DLL,
+       INSTALL.txt and THIRD-PARTY-NOTICES.txt. Users extract it into SDR#'s Plugins\ folder, as for any plugin
+       (SDR# scans Plugins\ and its subfolders for plugin DLLs). -->
+  <Target Name="PackageRelease" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
+    <GetAssemblyIdentity AssemblyFiles="$(TargetPath)">
+      <Output TaskParameter="Assemblies" ItemName="_PluginIdentity" />
+    </GetAssemblyIdentity>
+    <PropertyGroup>
+      <_PluginVersion>%(_PluginIdentity.Version)</_PluginVersion>
+      <_PluginVersion>$(_PluginVersion.Substring(0, $(_PluginVersion.LastIndexOf('.'))))</_PluginVersion>
+      <_StageRoot>$(BaseIntermediateOutputPath)package\</_StageRoot>
+      <_ZipPath>$(MSBuildProjectDirectory)\dist\$(AssemblyName)-v$(_PluginVersion).zip</_ZipPath>
+    </PropertyGroup>
+    <RemoveDir Directories="$(_StageRoot)" />
+    <Copy SourceFiles="$(TargetPath);THIRD-PARTY-NOTICES.txt;INSTALL.txt" DestinationFolder="$(_StageRoot)$(AssemblyName)\" />
+    <MakeDir Directories="$(MSBuildProjectDirectory)\dist" />
+    <ZipDirectory SourceDirectory="$(_StageRoot)" DestinationFile="$(_ZipPath)" Overwrite="true" />
+    <Message Importance="high" Text="Release package: $(_ZipPath)" />
+  </Target>
+
+</Project>

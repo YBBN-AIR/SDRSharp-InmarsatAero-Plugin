@@ -1,0 +1,42 @@
+SDRSharp.InmarsatAero - Inmarsat Aero ACARS decoder plugin for SDR#
+=====================================================================
+
+Decodes Inmarsat Aero P-channel ACARS (600, 1200 and 10500 bps) on L-band, many channels at once in one SDR#.
+
+Requirements
+------------
+- A recent SDR# (x64). Builds released before November 2026 may be too old: if the plugin does not appear, update SDR#.
+- An L-band receive setup for the Inmarsat satellite you can see (antenna, LNA; the plugin decodes, it does not tune hardware).
+
+Install
+-------
+1. Close SDR#.
+2. Extract this zip into SDR#'s Plugins folder, so that you have:
+      <SDR# folder>\Plugins\SDRSharp.InmarsatAero\SDRSharp.InmarsatAero.dll
+3. Start SDR#. Open it from the Plugins menu: "Inmarsat Aero" (the panel is titled "Inmarsat Aero ACARS").
+   If it is missing, look in <SDR# folder>\PluginError.log.
+
+To update: close SDR#, replace the folder, start SDR#. To remove: delete the folder.
+
+Quick start
+-----------
+1. Tune SDR# so the Aero carriers are inside the received band (the plugin uses the raw IQ, not the VFO).
+2. Tick Enabled.
+3. Either add channels yourself (frequency, bit rate, Add / Update), or tick
+   "Auto scan whole band" to find carriers and start temporary channels on them automatically.
+4. Decoded messages appear in the Log tab; aircraft in the Aircraft tab; the satellite / ground station /
+   channel assignment broadcasts in the System tab (add a log-on (Psmc) channel to see them).
+
+Aircraft database (optional)
+----------------------------
+For registration, type and military flag of every aircraft, download tar1090-db's aircraft.csv.gz
+(github.com/wiedehopf/tar1090-db, csv branch) and pick it with Browse... on the Aircraft tab.
+
+UDP output
+----------
+Send UDP sends each message as JAERO-style JSON (default 127.0.0.1:5002), for acarshub or similar.
+Extra fields: freq, level, snr, offset, and when available ebn0, margin, ber.
+
+Licence
+-------
+See THIRD-PARTY-NOTICES.txt for the JAERO licence (the protocol logic follows JAERO, MIT).

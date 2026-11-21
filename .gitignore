@@ -1,0 +1,20 @@
+# build output
+bin/
+obj/
+dist/
+
+# the local test install of SDR# (Airspy's software: never published)
+sdrsharp/
+
+# SDR# assemblies, if copied in for building
+SDRSharp.*.dll
+!SDRSharp.InmarsatAero.dll
+
+# editor
+.vs/
+*.user
+
+# IQ recordings
+IQ/
+*.wav
+Properties/launchSettings.json
