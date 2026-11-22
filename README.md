@@ -91,4 +91,6 @@ field layouts follow **[JAERO](https://github.com/jontio/JAERO)** by Jonathan Ol
 
 ## Licence
 
-See `LICENSE`. Third-party notices are in `THIRD-PARTY-NOTICES.txt`.
+Released under the [MIT License](LICENSE): you're free to use, copy, modify and share this plugin, including in
+your own projects, as long as the copyright notice is kept. It comes with no warranty. Third-party notices are in
+`THIRD-PARTY-NOTICES.txt`.
